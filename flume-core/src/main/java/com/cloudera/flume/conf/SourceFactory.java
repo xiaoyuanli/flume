@@ -33,10 +33,20 @@ abstract public class SourceFactory {
       return build(new Context(), argv);
     }
 
+    @Deprecated
     public abstract EventSource build(Context ctx, String... argv);
+
+    public EventSource create(Context ctx, Object... argv) {
+      return build(ctx, SinkFactory.toStrings(argv));
+    }
   };
 
-  
+  public EventSource createSource(Context ctx, String name, Object... args)
+      throws FlumeSpecException {
+    return getSource(ctx, name, SinkFactory.toStrings(args));
+  }
+
+  @Deprecated
   abstract public EventSource getSource(Context ctx, String name,
       String... args) throws FlumeSpecException;
 

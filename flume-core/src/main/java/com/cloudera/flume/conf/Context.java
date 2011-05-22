@@ -34,7 +34,7 @@ import java.util.Map;
  * transparently.
  */
 public class Context {
-  Map<String, String> table = new HashMap<String, String>();
+  Map<String, Object> table = new HashMap<String, Object>();
   final Context parent;
 
   final public static Context EMPTY = new Context(null);
@@ -63,14 +63,39 @@ public class Context {
    * try to get the value from there.
    */
   public String getValue(String arg) {
-    String val = table.get(arg);
-    if (val == null && getParent() != null) {
+    Object val = table.get(arg);
+    if (val != null) {
+      return val.toString();
+    }
+
+    if (getParent() != null) {
       return getParent().getValue(arg);
     }
-    return val;
+    return null; // no parent, and was null? return null
   }
 
+  /**
+   * Adds a value to the context assuming it is a string.
+   */
   protected void putValue(String arg, String val) {
     table.put(arg, val);
+  }
+
+  /**
+   * Adds an object value to the context.
+   */
+  protected void putObj(String arg, Object val) {
+    table.put(arg, val);
+  }
+
+  /**
+   * Gets an object value from the context.
+   */
+  public Object getObj(String arg) {
+    Object val = table.get(arg);
+    if (val == null && getParent() != null) {
+      return getParent().getObj(arg);
+    }
+    return val;
   }
 }

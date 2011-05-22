@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import com.cloudera.flume.conf.FlumeConfiguration;
 import com.cloudera.flume.conf.FlumeSpecException;
+import com.cloudera.flume.conf.SinkFactory;
 import com.cloudera.flume.handlers.avro.AvroDataFileOutputFormat;
 import com.cloudera.flume.handlers.avro.AvroJsonOutputFormat;
 import com.cloudera.flume.handlers.avro.AvroNativeFileOutputFormat;
@@ -56,6 +57,10 @@ public class FormatFactory {
     public abstract OutputFormat build(String... args);
 
     public abstract String getName();
+
+    public OutputFormat create(Object... args) {
+      return build(SinkFactory.toStrings(args));
+    }
 
   };
 
@@ -109,6 +114,27 @@ public class FormatFactory {
 
   public FormatFactory() {
     this(CORE_FORMATS);
+  }
+
+  public OutputFormat createOutputFormat(String name, Object... args)
+      throws FlumeSpecException {
+    OutputFormatBuilder builder;
+
+    // purposely said no format? return default.
+    if (name == null) {
+      return DEFAULT.build();
+    }
+
+    // specified a format but it was invalid? This is a problem.
+    synchronized (registeredFormats) {
+      builder = registeredFormats.get(name);
+    }
+
+    if (builder == null) {
+      throw new FlumeSpecException("Invalid output format: " + name);
+    }
+
+    return builder.create(args);
   }
 
   public OutputFormat getOutputFormat(String name, String... args)

@@ -45,12 +45,31 @@ public class LinkedSinkFactory extends SinkFactory {
   }
 
   @Override
+  public EventSinkDecorator<EventSink> createDecorator(Context context,
+      String name, Object... args) throws FlumeSpecException {
+    return parent.createDecorator(context, name, args);
+  }
+
+  @Override
+  @Deprecated
   public EventSinkDecorator<EventSink> getDecorator(Context context,
       String name, String... args) throws FlumeSpecException {
     return parent.getDecorator(context, name, args);
   }
 
   @Override
+  public EventSink createSink(Context context, String name, Object... args)
+      throws FlumeSpecException {
+    if (sinkname.equals(name)) {
+      // TODO (jon) we are actually close to allowing in sink templates
+      return sink;
+    }
+
+    return parent.createSink(context, name, args);
+  }
+
+  @Override
+  @Deprecated
   public EventSink getSink(Context context, String name, String... args)
       throws FlumeSpecException {
     if (sinkname.equals(name)) {
