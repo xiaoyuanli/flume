@@ -89,6 +89,7 @@ public class FlumeBuilder {
 
   enum ASTNODE {
     DEC, HEX, OCT, STRING, BOOL, FLOAT, // literals
+    FUN, // function node
     SINK, SOURCE, // sink or source
     KWARG, // kwarg support
     MULTI, DECO, BACKUP, LET, ROLL, GEN, FAILCHAIN, // compound sinks
@@ -359,11 +360,41 @@ public class FlumeBuilder {
       Preconditions.checkArgument(str.startsWith("\"") && str.endsWith("\""));
       str = str.substring(1, str.length() - 1);
       return StringEscapeUtils.unescapeJava(str);
+    case FUN:
+      String name = t.getChild(0).getText();
+      List<Object> args = new ArrayList<Object>();
+      int children = t.getChildCount();
+      for (int j = 1; j < children; j++) {
+        args.add(buildSimpleArg((CommonTree) t.getChild(j)));
+      }
+      FunctionSpec funSpec = new FunctionSpec(name, args.toArray());
+      return funSpec;
     case KWARG:
       return null;
     default:
       throw new FlumeSpecException("Not a node of literal type: "
           + t.toStringTree());
+    }
+  }
+
+  /**
+   * Container class for holding function arguments
+   */
+  public static class FunctionSpec {
+    String name;
+    Object[] args;
+
+    FunctionSpec(String name, Object... args) {
+      this.name = name;
+      this.args = args;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public Object[] getArgs() {
+      return args;
     }
   }
 
